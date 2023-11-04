@@ -1,0 +1,200 @@
+﻿@page "/"
+
+@using AplicacionDelivery.Models
+@using AplicacionDelivery.Service
+
+@inject IPedidosService service
+@inject NavigationManager NavigationManager
+
+<head>
+    <link rel="stylesheet" href="~/css/" />
+    <style>
+        body {
+            background-color: #F5214B; /* Cambia #FFA500 al color de fondo que desees */
+        }
+    </style>
+</head>
+
+<div class="franja">
+    <h3 class="pato">Pedidos Monkey</h3>
+
+</div>
+
+<img class="logo" src="https://img.freepik.com/vector-premium/chef-chimpance-mono-panaderia-restaurante-cocina-dibujos-animados-mascota-personaje-logotipo-vector-icono-ilustracion_7688-4718.jpg?w=2000" Height="140px" Width="140px" />
+
+<div class="btn-">
+    <button class="btn-info" @onclick="ToggleMenuDos">
+        <img src="https://e7.pngegg.com/pngimages/833/426/png-clipart-shopping-cart-shopping-cart.png" width="48" />
+    </button>
+    <ul class="menu-items1" style="display: @menuDisplay1">
+        
+        @foreach (var item in carrito)
+        {
+            <li class="lista">
+                @item.Producto - Precio: @item.Precio - Cantidad: @item.Cantidad 
+            </li>
+  
+                // Calcular el subtotal para el elemento actual y agregarlo al total del carrito
+                decimal subtotal = item.Precio * item.Cantidad;
+                TotalCarritos += subtotal;
+
+        }
+        <li>Total del Carrito: @TotalCarrito</li>
+
+
+    </ul> 
+</div>
+<br />
+@if (productos == null)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+}
+else
+{
+    <MudGrid Spacing="@spacing" Justify="Justify.Center">
+
+    @foreach (var AppPedidosMaui in productos)
+    {
+                <MudItem Class="btn-warning">
+                <p class="infoProducto">Producto: @AppPedidosMaui.Productos</p>
+
+                    <img class="comidas" src="@AppPedidosMaui.imagen" alt="@AppPedidosMaui.imagen" Height="140px" Width="140px" />
+                <br />
+                <div style="width: 140px; height: 80px;">
+                <p>descripcion de producto: @AppPedidosMaui.Descripcion</p>
+                </div>
+                <div>
+                    <select name="select">
+                        <option value="value1">Pequeño</option>
+                        <option value="value2">Mediano</option>
+                        <option value="value2">Grande</option>
+
+                    </select>
+                </div>
+                <br />
+                <div>
+                    @* <input type="number" placeholder="Cantidad" class="btn-light" /> *@
+                    <input type="number" placeholder="Cantidad" class="btn-light" @bind="AppPedidosMaui.Cantidad"  />
+                </div>
+                <br />
+                <p>precio: @AppPedidosMaui.Precio</p>
+
+                <button class="btn btn-outline-primary" @onclick="() => AgregarAlCarrito(AppPedidosMaui.Productos, decimal.Parse(AppPedidosMaui.Cantidad), decimal.Parse(AppPedidosMaui.Precio), decimal.Parse(AppPedidosMaui.Total))">Agregar a carrito</button>
+               </MudItem>
+    }
+    </MudGrid>
+}
+<br />
+
+
+
+@code {
+    public int spacing { get; set; } = 2;
+
+    private string menuDisplay = "none";
+    private string menuDisplay1 = "none";
+
+
+    private void ToggleMenu()
+    {
+        if (menuDisplay == "none")
+        {
+            menuDisplay = "block";
+        }
+        else
+        {
+            menuDisplay = "none";
+        }
+    }
+    private void ToggleMenuDos()
+    {
+        if (menuDisplay1 == "none")
+        {
+            menuDisplay1 = "block";
+        }
+        else
+        {
+            menuDisplay1 = "none";
+        }
+    }
+
+    //-----------------------------------------
+
+    private List<AppPedidosMaui> productos;
+    private bool actualizado = false;
+    private bool eliminado = false;
+    private string newname;
+
+    protected override async Task OnInitializedAsync()
+    {
+        productos = await service.Get();
+    }
+    //------------------------------------
+    // List<adminItem> administrador = new List<adminItem>();
+    // void AgregarAlAdmin(int id, string producto, decimal cantidad, decimal precio, decimal total)
+    // {
+    //     administrador.Add(new adminItem
+    //         {
+    //             Id = id,
+    //             Producto = producto,
+    //             Cantidad = cantidad,
+    //             Precio = precio,
+    //             Total = total
+    //         });
+    // }
+
+    //----------------------------------------
+    List<CarritoItem> carrito = new List<CarritoItem>();
+
+    void AgregarAlCarrito(string producto, decimal cantidad, decimal precio, decimal total)
+    {
+
+        carrito.Add(new CarritoItem
+        {
+            Producto = producto,
+            Cantidad = cantidad,
+            Precio = precio,
+            Total = total
+        });
+    }
+
+    // Clase para representar un elemento en el carrito
+    public class CarritoItem
+    {
+        public string Producto { get; set; }
+        public decimal Cantidad { get; set; }
+        public decimal Precio { get; set; }
+        public decimal Total { get; set; }
+
+    }
+
+    // public class adminItem
+    // {
+    //     public int Id { get; set; }
+    //     public string Producto { get; set; }
+    //     public decimal Cantidad { get; set; }
+    //     public decimal Precio { get; set; }
+    //     public decimal Total { get; set; }
+    // }
+    //---------------------------------------Dios, soy yo de nuevo
+    decimal TotalCarrito
+    {
+        get
+        {
+            return carrito.Sum(item => item.Total);
+        }
+    }
+    //---------------------
+    decimal TotalCarritos = 0;
+    //---------------------------------
+    // ... Otras declaraciones de variables y funciones ...
+
+    // Cuando desees pasar la lista del carrito al componente Carrito
+    void MostrarCarrito()
+    {
+        NavigationManager.NavigateTo("/admin");
+    }
+}
+
